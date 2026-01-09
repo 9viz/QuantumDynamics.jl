@@ -417,7 +417,7 @@ end
     propagate(; Hamiltonian::Matrix{<:Complex}, Jw::Vector{T},
               β::Real, num_osc::Vector{<:Integer}, svec::Matrix{<:Real},
               ρ0::Union{Nothing,Matrix{<:Complex}}, dt::Real,
-              ntimes::Real, nmc::Integer, verbose::Bool=false,
+              ntimes::Integer, nmc::Integer, verbose::Bool=false,
               solver::Type{<:PLDMSolver}, sampler::Type{<:PLDMSystemSampler},
               kwargs...) where {T<:SpectralDensities.SpectralDensity}
 
@@ -443,9 +443,8 @@ function propagate(; Hamiltonian::Matrix{<:Complex}, Jw::Vector{T},
                    β::Real, num_osc::Vector{<:Integer},
                    svec::Matrix{<:Real},
                    ρ0::Union{Nothing,Matrix{<:Complex}}, dt::Real,
-                   ntimes::Real, nmc::Integer, verbose::Bool=false,
-                   solver::Type{<:PLDMSolver},
-                   sampler::Type{<:PLDMSystemSampler},
+                   ntimes::Integer, nmc::Integer, verbose::Bool=false,
+                   solver::Type{<:PLDMSolver}, sampler::Type{<:PLDMSystemSampler},
                    kwargs...) where {T<:SpectralDensity.SpectralDensity}
     nbaths = length(Jw)
     c = Vector{Vector{Float64}}(undef, nbaths)
