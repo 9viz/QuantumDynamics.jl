@@ -158,8 +158,8 @@ function propagate_α_xp!(du, u, p, t)
 
     du[1:d] = -im * ℋv(sys, uf, bps)    # u̇⁺
     du[d+1:2d] = im * ℋu(sys, vf, bps)  # v̇⁺
-    du[2d+1:3d] = -im * ℋ(sys, ub, bps) # u̇⁻
-    du[3d+1:4d] = im * ℋ(sys, vb, bps)  # v̇⁻
+    du[2d+1:3d] = -im * ℋv(sys, ub, bps) # u̇⁻
+    du[3d+1:4d] = im * ℋu(sys, vb, bps)  # v̇⁻
 
     for n in 1:sys.bath.nbaths
         du[xis[n]] = bps.p[n]                     # ẋ
@@ -207,7 +207,7 @@ function build_dynmap_ρ(sol::ODE.ODESolution)
             sol.u[t][2d+1:3d],
             sol.u[t][3d+1:4d])
         bareρ = reconstruct_bare_ρ(sps.uf, sps.vb)
-        bareρ′ = reconstruct_bare_ρ(sps.uf, sps.vb)
+        bareρ′ = reconstruct_bare_ρ(sps.ub, sps.vf)
         update_dynmap!(view(U0e, t-1,:,:), bareρ, bareρ′, sys, sps0)
 
         if !isnothing(sys.ρ₀)
@@ -339,12 +339,14 @@ function propagate_trajectory(::Type{Verlet}, sys::PLDMSystem,
     end
 
     bs = sys.bath
+    h′ = h - mapreduce(b -> sum(bs.c[b].^2 ./ bs.ω[b].^2) * diagm(bs.s[b].^2), +,
+                       1:bs.nbaths)
     for t in 2:ntimes+1
         propagate_xp!()
 
-        V = h - mapreduce((b, x) -> sum(bs.c[b] .* x) * diagm(bs.s[b]), +,
-                          1:bs.nbaths, x)
-        L = exp(-im * V)
+        V = h′ - mapreduce((b, x) -> sum(bs.c[b] .* x) * diagm(bs.s[b]), +,
+                           1:bs.nbaths, x)
+        L = exp(-im * V * dt)
         uf = L * uf
         vf = transpose(transpose(vf) * L)
         ub = conj(L) * ub
