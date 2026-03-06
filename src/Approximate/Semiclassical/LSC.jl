@@ -80,7 +80,7 @@ function propagate_trajectory(sys::LSCSys, sps0::LSCSysPhaseSpace,
         Systems.Fbath!(sys, sps, sc)
         _, bps = Solvents.propagate_forced_bath(bs, bps, sc, dt2, 1)
 
-        LXP[1:d,d+1:2d] = @views sys.h - mapreduce((b, x) -> sum(bs.c[b] .* x) .* svecs[b], +, 1:length(bs), bps.q)
+        LXP[1:d,d+1:2d] = @views sys.h - mapreduce((b, x) -> sum(bs.c[b] .* x) .* svecs[b], +, 1:length(svecs), bps.q)
         LXP[d+1:2d,1:d] = -LXP[1:d,d+1:2d]
         XP = exp(LXP * dt) * XP
 
@@ -111,7 +111,7 @@ function propagate_trajectories(sys::LSCSys, dt::Real, ntimes::Integer;
     stats = @timed Threads.@threads for (sps0, bps0) in sys
         ρᵢ = propagate_trajectory(sys, sps0, bps0, dt, ntimes)
         lock(mutlock) do
-            ρ += ρᵢ
+            ρ .+= ρᵢ
             ndone += 1
             verbose && ndone % nthreads == 0 &&
                 @info "Trajectories complete: $(100ndone / length(sys))%"

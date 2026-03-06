@@ -93,7 +93,7 @@ function propagate_trajectory(sys::PLDMSys, sps0::PLDMSysPhaseSpace,
         Systems.Fbath!(sys, sps, s̄c)
         _, bps = Solvents.propagate_forced_bath(bs, bps, s̄c, dt2, 1)
 
-        LXP[1:d,d+1:2d] = @views sys.h - mapreduce((b, q) -> sum(bs.c[b] .* q) * svecs[b], +, 1:length(bs), bps.q)
+        LXP[1:d,d+1:2d] = @views sys.h - mapreduce((b, q) -> sum(bs.c[b] .* q) * svecs[b], +, 1:length(svecs), bps.q)
         LXP[d+1:2d,1:d] = -LXP[1:d,d+1:2d]
         eLXP = exp(LXP * dt)
         XPf = eLXP * XPf
@@ -126,7 +126,7 @@ function propagate_trajectories(sys::PLDMSys, dt::Real, ntimes::Integer;
         ρᵢ = propagate_trajectory(sys, sps0, bps0, dt, ntimes)
         lock(mutlock) do
             ndone += 1
-            ρ += ρᵢ
+            ρ .+= ρᵢ
             verbose && ndone % nthreads == 0 &&
                 @info "Trajectories complete: $(100ndone / length(sys))%"
         end
